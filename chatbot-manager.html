@@ -1,0 +1,2645 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciador de Chatbots</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .navbar-brand {
+            font-weight: bold;
+        }
+        .card {
+            border: none;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        }
+        .card-header {
+            background-color: #e9ecef;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .table th {
+            background-color: #f8f9fa;
+        }
+        .chat-id-item {
+            display: inline-block;
+            margin: 2px;
+        }
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 5px;
+        }
+        .status-online {
+            background-color: #28a745;
+        }
+        .status-offline {
+            background-color: #dc3545;
+        }
+        .avatar-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .user-checkbox {
+            cursor: pointer;
+        }
+        .table td {
+            vertical-align: middle;
+        }
+        #users-section .table th {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        /* Garantir que os ícones do Bootstrap sejam carregados */
+        .bi::before {
+            font-family: "bootstrap-icons" !important;
+        }
+        /* Fallback para ícones que não carregam */
+        .btn [class^="bi-"]:empty::before {
+            content: "⚠️";
+            font-family: Arial, sans-serif;
+        }
+        /* Estilos específicos para botões de bloquear */
+        .btn-block-user:hover {
+            background-color: #ffc107;
+            border-color: #ffc107;
+            color: #000;
+        }
+        .btn-unblock-user:hover {
+            background-color: #198754;
+            border-color: #198754;
+            color: #fff;
+        }
+        /* Garantir visibilidade dos ícones */
+        .bi-slash-circle::before { content: "\f75b"; }
+        .bi-check-circle::before { content: "\f26a"; }
+        .bi-eye::before { content: "\f341"; }
+        .bi-envelope::before { content: "\f32f"; }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-robot"></i> Gerenciador de Chatbots
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#chatbots-section">Chatbots</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#chat-ids-section">Chat IDs</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#messages-section">Mensagens</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#users-section">Usuários</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- Seção de Gerenciamento de Chatbots -->
+        <section id="chatbots-section" class="mb-5">
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0"><i class="bi bi-robot"></i> Gerenciar Chatbots</h5>
+                            <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addChatbotModal">
+                                <i class="bi bi-plus-circle"></i> Adicionar Chatbot
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Status</th>
+                                            <th>Nome</th>
+                                            <th>Bot Token</th>
+                                            <th>Descrição</th>
+                                            <th>Criado em</th>
+                                            <th>Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="chatbots-table-body">
+                                        <!-- Dados serão inseridos via JavaScript -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Seção de Gerenciamento de Chat IDs -->
+        <section id="chat-ids-section" class="mb-5">
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0"><i class="bi bi-chat-dots"></i> Gerenciar Chat IDs</h5>
+                            <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#addChatIdModal">
+                                <i class="bi bi-plus-circle"></i> Adicionar Chat ID
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <input type="text" class="form-control" id="search-chat-ids" placeholder="Buscar por Chat ID ou nome...">
+                            </div>
+                            <div id="chat-ids-container">
+                                <!-- Chat IDs serão inseridos via JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Seção de Envio de Mensagens -->
+        <section id="messages-section" class="mb-5">
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="bi bi-send"></i> Enviar Mensagens Automáticas</h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="message-form">
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="select-chatbot" class="form-label">Selecionar Chatbot:</label>
+                                        <select class="form-select" id="select-chatbot" required>
+                                            <option value="">Escolha um chatbot...</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="message-type" class="form-label">Tipo de Mensagem:</label>
+                                        <select class="form-select" id="message-type">
+                                            <option value="text">Texto</option>
+                                            <option value="photo">Foto</option>
+                                            <option value="document">Documento</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="message-content" class="form-label">Conteúdo da Mensagem:</label>
+                                    <textarea class="form-control" id="message-content" rows="4" placeholder="Digite sua mensagem aqui..." required></textarea>
+                                </div>
+
+                                <div class="mb-3" id="media-url-group" style="display: none;">
+                                    <label for="media-url" class="form-label">URL da Mídia:</label>
+                                    <input type="url" class="form-control" id="media-url" placeholder="https://exemplo.com/imagem.jpg">
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Selecionar Destinatários:</label>
+                                    <div class="border rounded p-3" style="max-height: 200px; overflow-y: auto;">
+                                        <div class="form-check mb-2">
+                                            <input class="form-check-input" type="checkbox" id="select-all-chats">
+                                            <label class="form-check-label fw-bold" for="select-all-chats">
+                                                Selecionar Todos
+                                            </label>
+                                        </div>
+                                        <hr>
+                                        <div id="chat-ids-checkboxes">
+                                            <!-- Checkboxes serão inseridos via JavaScript -->
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="schedule-message">
+                                            <label class="form-check-label" for="schedule-message">
+                                                Agendar Mensagem
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6" id="schedule-time-group" style="display: none;">
+                                        <input type="datetime-local" class="form-control" id="schedule-time">
+                                    </div>
+                                </div>
+
+                                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                    <button type="button" class="btn btn-outline-secondary me-md-2" id="preview-message">
+                                        <i class="bi bi-eye"></i> Visualizar
+                                    </button>
+                                    <button type="button" class="btn btn-outline-info me-md-2" data-bs-toggle="modal" data-bs-target="#scheduledMessagesModal">
+                                        <i class="bi bi-clock"></i> Ver Agendadas
+                                    </button>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-send"></i> Enviar Mensagem
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Seção de Usuários que Interagiram -->
+        <section id="users-section" class="mb-5">
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0"><i class="bi bi-people"></i> Usuários que Interagiram</h5>
+                            <div class="btn-group btn-group-sm">
+                                <button class="btn btn-outline-primary" id="refresh-users-btn">
+                                    <i class="bi bi-arrow-clockwise"></i> Atualizar
+                                </button>
+                                <button class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#importUsersModal">
+                                    <i class="bi bi-upload"></i> Importar
+                                </button>
+                                <button class="btn btn-outline-info" id="export-users-btn">
+                                    <i class="bi bi-download"></i> Exportar
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <select class="form-select" id="filter-chatbot">
+                                        <option value="">Todos os Chatbots</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <input type="text" class="form-control" id="search-users" placeholder="Buscar usuários...">
+                                </div>
+                                <div class="col-md-4">
+                                    <select class="form-select" id="filter-status">
+                                        <option value="">Todos os Status</option>
+                                        <option value="active">Ativos</option>
+                                        <option value="inactive">Inativos</option>
+                                        <option value="blocked">Bloqueados</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <span class="text-muted" id="users-count">Total: 0 usuários</span>
+                                <div class="btn-group btn-group-sm">
+                                    <input type="checkbox" class="btn-check" id="select-all-users">
+                                    <label class="btn btn-outline-secondary" for="select-all-users">
+                                        <i class="bi bi-check-all"></i> Selecionar Todos
+                                    </label>
+                                    <button class="btn btn-outline-primary" id="bulk-message-btn" disabled>
+                                        <i class="bi bi-envelope"></i> Mensagem em Massa
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th width="40">
+                                                <input type="checkbox" id="select-all-table" class="form-check-input">
+                                            </th>
+                                            <th>Usuário</th>
+                                            <th>Chat ID</th>
+                                            <th>Nome</th>
+                                            <th>Username</th>
+                                            <th>Chatbot</th>
+                                            <th>Status</th>
+                                            <th>Última Interação</th>
+                                            <th>Total Mensagens</th>
+                                            <th>Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="users-table-body">
+                                        <!-- Dados serão inseridos via JavaScript -->
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <nav aria-label="Paginação de usuários">
+                                <ul class="pagination justify-content-center" id="users-pagination">
+                                    <!-- Paginação será inserida via JavaScript -->
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Modal para Adicionar Chatbot -->
+    <div class="modal fade" id="addChatbotModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Adicionar Novo Chatbot</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="chatbot-form">
+                        <div class="mb-3">
+                            <label for="chatbot-name" class="form-label">Nome do Chatbot:</label>
+                            <input type="text" class="form-control" id="chatbot-name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="chatbot-token" class="form-label">Bot Token:</label>
+                            <input type="text" class="form-control" id="chatbot-token" placeholder="123456789:ABCDEFGHIJKLMNOPQRSTUVWXYZ" required>
+                            <div class="form-text">Obtenha o token através do @BotFather no Telegram</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="chatbot-description" class="form-label">Descrição:</label>
+                            <textarea class="form-control" id="chatbot-description" rows="3"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="add-chatbot-btn">Adicionar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Adicionar Chat ID -->
+    <div class="modal fade" id="addChatIdModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Adicionar Chat ID</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="chat-id-form">
+                        <div class="mb-3">
+                            <label for="chat-id-value" class="form-label">Chat ID:</label>
+                            <input type="text" class="form-control" id="chat-id-value" placeholder="-1001234567890" required>
+                            <div class="form-text">IDs de grupos começam com -100, IDs de usuários são números positivos</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="chat-id-name" class="form-label">Nome/Descrição:</label>
+                            <input type="text" class="form-control" id="chat-id-name" placeholder="Nome do grupo ou usuário">
+                        </div>
+                        <div class="mb-3">
+                            <label for="chat-id-type" class="form-label">Tipo:</label>
+                            <select class="form-select" id="chat-id-type">
+                                <option value="user">Usuário</option>
+                                <option value="group">Grupo</option>
+                                <option value="channel">Canal</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-success" id="add-chatid-btn">Adicionar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Visualização de Mensagem -->
+    <div class="modal fade" id="previewModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Visualizar Mensagem</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="preview-content">
+                        <!-- Conteúdo da visualização será inserido aqui -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Importar Usuários -->
+    <div class="modal fade" id="importUsersModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Importar Usuários</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <div class="alert alert-info">
+                            <h6 class="alert-heading"><i class="bi bi-info-circle"></i> Importante sobre API do Telegram</h6>
+                            <p class="mb-2">Para usar a API real do Telegram diretamente do navegador, você precisará:</p>
+                            <ul class="mb-2">
+                                <li>Instalar uma extensão CORS (como "CORS Unblock") OU</li>
+                                <li>Implementar um backend/proxy para contornar as restrições CORS OU</li>
+                                <li>Usar este código em um ambiente Node.js/servidor</li>
+                            </ul>
+                            <small>O navegador bloqueia requisições diretas para APIs externas por segurança.</small>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="import-chatbot" class="form-label">Selecionar Chatbot:</label>
+                        <select class="form-select" id="import-chatbot" required>
+                            <option value="">Escolha um chatbot...</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Método de Importação:</label>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card h-100">
+                                    <div class="card-body text-center">
+                                        <h6 class="card-title">API do Telegram</h6>
+                                        <p class="card-text small text-muted">Buscar usuários reais que interagiram com o bot</p>
+                                        <button type="button" class="btn btn-primary btn-sm" id="fetch-telegram-users">
+                                            <i class="bi bi-telegram"></i> Buscar Usuários
+                                        </button>
+                                        <div class="form-text mt-2">
+                                            <small>Requer permissões de bot ativo</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card h-100">
+                                    <div class="card-body text-center">
+                                        <h6 class="card-title">Upload CSV</h6>
+                                        <p class="card-text small text-muted">Fazer upload de arquivo CSV com dados dos usuários</p>
+                                        <input type="file" class="form-control form-control-sm" id="csv-file" accept=".csv">
+                                        <div class="form-text mt-2">
+                                            <small>Formato: user_id,first_name,username</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="manual-users" class="form-label">Ou Adicionar Manualmente (JSON):</label>
+                        <textarea class="form-control" id="manual-users" rows="8" placeholder='[{"user_id": 123456, "first_name": "João", "username": "joao123", "last_seen": "2025-09-30T10:00:00Z"}]'></textarea>
+                        <div class="form-text">Formato JSON com user_id, first_name, last_name, username, last_seen</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-success" id="import-users-btn">Importar Usuários</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Detalhes do Usuário -->
+    <div class="modal fade" id="userDetailsModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Detalhes do Usuário</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="user-details-content">
+                    <!-- Conteúdo será inserido via JavaScript -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                    <button type="button" class="btn btn-primary" id="send-private-message">
+                        <i class="bi bi-envelope"></i> Enviar Mensagem
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Mensagens Agendadas -->
+    <div class="modal fade" id="scheduledMessagesModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Mensagens Agendadas</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span id="scheduled-count">Total: 0 mensagens agendadas</span>
+                        <button class="btn btn-outline-danger btn-sm" id="clear-all-scheduled">
+                            <i class="bi bi-trash"></i> Limpar Todas
+                        </button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Agendamento</th>
+                                    <th>Chatbot</th>
+                                    <th>Tipo</th>
+                                    <th>Conteúdo</th>
+                                    <th>Destinatários</th>
+                                    <th>Status</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="scheduled-messages-table">
+                                <!-- Conteúdo será inserido via JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                    <button type="button" class="btn btn-primary" id="process-scheduled-messages">
+                        <i class="bi bi-play"></i> Processar Agendadas
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Dados armazenados em localStorage
+        let chatbots = JSON.parse(localStorage.getItem('chatbots')) || [];
+        let chatIds = JSON.parse(localStorage.getItem('chatIds')) || [];
+        let users = JSON.parse(localStorage.getItem('users')) || [];
+        let currentPage = 1;
+        let usersPerPage = 10;
+
+        // Função utilitária para gerar IDs únicos
+        function generateUniqueId() {
+            return Date.now() + Math.random();
+        }
+
+        // Funções globais
+        window.addChatbot = addChatbot;
+        window.addChatId = addChatId;
+        window.toggleChatbotStatus = toggleChatbotStatus;
+        window.editChatbot = editChatbot;
+        window.deleteChatbot = deleteChatbot;
+        window.deleteChatId = deleteChatId;
+        window.toggleTokenVisibility = toggleTokenVisibility;
+        window.sendMessage = sendMessage;
+        window.previewMessage = previewMessage;
+        window.refreshUsers = refreshUsers;
+        window.importUsers = importUsers;
+        window.exportUsers = exportUsers;
+        window.viewUserDetails = viewUserDetails;
+        window.blockUser = blockUser;
+        window.unblockUser = unblockUser;
+
+        // Inicialização da página
+        document.addEventListener('DOMContentLoaded', function() {
+            loadChatbots();
+            loadChatIds();
+            loadUsers();
+            setupEventListeners();
+        });
+
+        // Configurar event listeners
+        function setupEventListeners() {
+            // Botões dos modais
+            document.getElementById('add-chatbot-btn').addEventListener('click', addChatbot);
+            document.getElementById('add-chatid-btn').addEventListener('click', addChatId);
+            
+            // Funcionalidades de usuários
+            document.getElementById('refresh-users-btn').addEventListener('click', refreshUsers);
+            document.getElementById('export-users-btn').addEventListener('click', exportUsers);
+            document.getElementById('import-users-btn').addEventListener('click', importUsers);
+            document.getElementById('fetch-telegram-users').addEventListener('click', fetchTelegramUsers);
+            
+            // Filtros de usuários
+            document.getElementById('filter-chatbot').addEventListener('change', filterUsers);
+            document.getElementById('search-users').addEventListener('input', filterUsers);
+            document.getElementById('filter-status').addEventListener('change', filterUsers);
+            
+            // Seleção de usuários
+            document.getElementById('select-all-users').addEventListener('change', toggleAllUsersSelection);
+            document.getElementById('select-all-table').addEventListener('change', toggleTableUsersSelection);
+            document.getElementById('bulk-message-btn').addEventListener('click', sendBulkMessage);
+
+            // Toggle para agendar mensagem
+            document.getElementById('schedule-message').addEventListener('change', function() {
+                const scheduleGroup = document.getElementById('schedule-time-group');
+                scheduleGroup.style.display = this.checked ? 'block' : 'none';
+            });
+
+            // Toggle para tipo de mensagem
+            document.getElementById('message-type').addEventListener('change', function() {
+                const mediaGroup = document.getElementById('media-url-group');
+                mediaGroup.style.display = this.value !== 'text' ? 'block' : 'none';
+            });
+
+            // Selecionar todos os chat IDs
+            document.getElementById('select-all-chats').addEventListener('change', function() {
+                const checkboxes = document.querySelectorAll('#chat-ids-checkboxes input[type="checkbox"]');
+                checkboxes.forEach(checkbox => checkbox.checked = this.checked);
+            });
+
+            // Busca de chat IDs
+            document.getElementById('search-chat-ids').addEventListener('input', function() {
+                filterChatIds(this.value);
+            });
+
+            // Envio de mensagem
+            document.getElementById('message-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                sendMessage();
+            });
+
+            // Visualizar mensagem
+            document.getElementById('preview-message').addEventListener('click', previewMessage);
+
+            // Mensagens agendadas
+            document.getElementById('clear-all-scheduled').addEventListener('click', clearAllScheduledMessages);
+            document.getElementById('process-scheduled-messages').addEventListener('click', processScheduledMessages);
+
+            // Navegação suave
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const target = this.getAttribute('href');
+                    document.querySelector(target).scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                    
+                    // Atualizar nav ativa
+                    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+        }
+
+        // Gerenciamento de Chatbots
+        function addChatbot() {
+            const name = document.getElementById('chatbot-name').value;
+            const token = document.getElementById('chatbot-token').value;
+            const description = document.getElementById('chatbot-description').value;
+
+            if (!name || !token) {
+                alert('Nome e Token são obrigatórios!');
+                return;
+            }
+
+            // Validar formato do token
+            if (!validateBotToken(token)) {
+                alert('Formato de token inválido! Use o formato: 123456789:ABCDEFGHIJKLMNOPQRSTUVWXYZ');
+                return;
+            }
+
+            const chatbot = {
+                id: Date.now(),
+                name: name,
+                token: token,
+                description: description,
+                status: 'offline',
+                createdAt: new Date().toISOString()
+            };
+
+            chatbots.push(chatbot);
+            localStorage.setItem('chatbots', JSON.stringify(chatbots));
+            
+            loadChatbots();
+            updateChatbotSelect();
+            
+            // Limpar formulário e fechar modal
+            document.getElementById('chatbot-form').reset();
+            bootstrap.Modal.getInstance(document.getElementById('addChatbotModal')).hide();
+            
+            showNotification('Chatbot adicionado com sucesso!', 'success');
+        }
+
+        function validateBotToken(token) {
+            const tokenRegex = /^\d+:[A-Za-z0-9_-]+$/;
+            return tokenRegex.test(token);
+        }
+
+        function loadChatbots() {
+            const tbody = document.getElementById('chatbots-table-body');
+            tbody.innerHTML = '';
+
+            chatbots.forEach(chatbot => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>
+                        <span class="status-indicator ${chatbot.status === 'online' ? 'status-online' : 'status-offline'}"></span>
+                        ${chatbot.status === 'online' ? 'Online' : 'Offline'}
+                    </td>
+                    <td>${chatbot.name}</td>
+                    <td>
+                        <code class="text-muted">${maskToken(chatbot.token)}</code>
+                        <button class="btn btn-sm btn-outline-secondary ms-1" data-chatbot-id="${chatbot.id}" data-action="toggle-token">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </td>
+                    <td>${chatbot.description || '-'}</td>
+                    <td>${formatDate(chatbot.createdAt)}</td>
+                    <td>
+                        <div class="btn-group btn-group-sm">
+                            <button class="btn btn-outline-primary" data-chatbot-id="${chatbot.id}" data-action="toggle-status">
+                                <i class="bi bi-power"></i>
+                            </button>
+                            <button class="btn btn-outline-warning" data-chatbot-id="${chatbot.id}" data-action="edit">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-outline-danger" data-chatbot-id="${chatbot.id}" data-action="delete">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            updateChatbotSelect();
+
+            // Adicionar event listeners para os botões da tabela
+            addTableEventListeners();
+        }
+
+        function addTableEventListeners() {
+            // Event listeners para botões de chatbots
+            document.querySelectorAll('[data-chatbot-id]').forEach(button => {
+                button.addEventListener('click', function() {
+                    const chatbotId = parseInt(this.dataset.chatbotId);
+                    const action = this.dataset.action;
+                    
+                    switch(action) {
+                        case 'toggle-status':
+                            toggleChatbotStatus(chatbotId);
+                            break;
+                        case 'edit':
+                            editChatbot(chatbotId);
+                            break;
+                        case 'delete':
+                            deleteChatbot(chatbotId);
+                            break;
+                        case 'toggle-token':
+                            toggleTokenVisibility(chatbotId);
+                            break;
+                    }
+                });
+            });
+
+            // Event listeners para botões de chat IDs
+            document.querySelectorAll('[data-chat-id]').forEach(button => {
+                button.addEventListener('click', function() {
+                    const chatId = parseInt(this.dataset.chatId);
+                    const action = this.dataset.action;
+                    
+                    if (action === 'delete-chat') {
+                        deleteChatId(chatId);
+                    }
+                });
+            });
+        }
+
+        function maskToken(token) {
+            return token.substring(0, 10) + '...' + token.substring(token.length - 5);
+        }
+
+        function toggleTokenVisibility(chatbotId) {
+            // Esta função seria implementada para mostrar/ocultar o token completo
+            showNotification('Funcionalidade de visualização de token não implementada para segurança', 'info');
+        }
+
+        // ===== GERENCIAMENTO DE USUÁRIOS =====
+        
+        function loadUsers() {
+            displayUsers();
+            updateUsersCount();
+            updateFilterChatbotSelect();
+        }
+
+        function displayUsers(filteredUsers = null) {
+            const tbody = document.getElementById('users-table-body');
+            const usersToShow = filteredUsers || users;
+            
+            tbody.innerHTML = '';
+
+            if (usersToShow.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="10" class="text-center text-muted py-4">
+                            <i class="bi bi-people fs-1 d-block mb-2"></i>
+                            Nenhum usuário encontrado. <br>
+                            <small>Use "Buscar Usuários" para importar da API do Telegram ou adicione manualmente.</small>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            // Paginação
+            const startIndex = (currentPage - 1) * usersPerPage;
+            const endIndex = startIndex + usersPerPage;
+            const paginatedUsers = usersToShow.slice(startIndex, endIndex);
+
+            paginatedUsers.forEach(user => {
+                const chatbot = chatbots.find(c => c.id === user.chatbotId);
+                const statusClass = user.status === 'active' ? 'success' : 
+                                  user.status === 'blocked' ? 'danger' : 'secondary';
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>
+                        <input type="checkbox" class="form-check-input user-checkbox" value="${user.id}">
+                    </td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="avatar-circle bg-primary text-white me-2">
+                                ${user.first_name.charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                                <strong>${user.first_name} ${user.last_name || ''}</strong>
+                                ${user.username ? `<br><small class="text-muted">@${user.username}</small>` : ''}
+                            </div>
+                        </div>
+                    </td>
+                    <td><code>${user.chat_id}</code></td>
+                    <td>${user.first_name} ${user.last_name || ''}</td>
+                    <td>${user.username ? `@${user.username}` : '-'}</td>
+                    <td>${chatbot ? chatbot.name : 'N/A'}</td>
+                    <td>
+                        <span class="badge bg-${statusClass}">${user.status}</span>
+                    </td>
+                    <td>
+                        <small>${formatDate(user.last_interaction)}</small>
+                    </td>
+                    <td>
+                        <span class="badge bg-info">${user.message_count || 0}</span>
+                    </td>
+                    <td>
+                        <div class="btn-group btn-group-sm" role="group">
+                            <button type="button" class="btn btn-outline-info" data-user-id="${user.id}" data-action="view-details" title="Ver Detalhes">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-primary" data-user-id="${user.id}" data-action="send-message" title="Enviar Mensagem">
+                                <i class="bi bi-envelope"></i>
+                            </button>
+                            ${user.status !== 'blocked' ? 
+                                `<button type="button" class="btn btn-outline-warning btn-block-user" data-user-id="${user.id}" data-action="block" title="Bloquear Usuário">
+                                    <i class="bi bi-lock"></i>                                    
+                                </button>` :
+                                `<button type="button" class="btn btn-outline-success btn-unblock-user" data-user-id="${user.id}" data-action="unblock" title="Desbloquear Usuário">
+                                    <i class="bi bi-unlock"></i>
+                                </button>`
+                            }
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            // Adicionar event listeners para os botões
+            addUsersTableEventListeners();
+            
+            // Atualizar paginação
+            updatePagination(usersToShow.length);
+        }
+
+        function addUsersTableEventListeners() {
+            document.querySelectorAll('[data-user-id]').forEach(button => {
+                button.addEventListener('click', function() {
+                    const userId = parseFloat(this.dataset.userId);
+                    const action = this.dataset.action;
+                    
+                    console.log('Ação clicada:', action, 'para usuário:', userId); // Debug
+                    
+                    switch(action) {
+                        case 'view-details':
+                            viewUserDetails(userId);
+                            break;
+                        case 'send-message':
+                            sendPrivateMessage(userId);
+                            break;
+                        case 'block':
+                            blockUser(userId);
+                            break;
+                        case 'unblock':
+                            unblockUser(userId);
+                            break;
+                        default:
+                            console.error('Ação não reconhecida:', action);
+                    }
+                });
+            });
+
+            // Event listeners para checkboxes
+            document.querySelectorAll('.user-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', updateBulkMessageButton);
+            });
+
+            // Event listeners específicos para botões de bloquear (fallback)
+            document.querySelectorAll('.btn-block-user').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const userId = parseFloat(this.dataset.userId);
+                    console.log('Bloqueando usuário:', userId);
+                    blockUser(userId);
+                });
+            });
+
+            document.querySelectorAll('.btn-unblock-user').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const userId = parseFloat(this.dataset.userId);
+                    console.log('Desbloqueando usuário:', userId);
+                    unblockUser(userId);
+                });
+            });
+        }
+
+        function updatePagination(totalUsers) {
+            const pagination = document.getElementById('users-pagination');
+            const totalPages = Math.ceil(totalUsers / usersPerPage);
+            
+            pagination.innerHTML = '';
+
+            if (totalPages <= 1) return;
+
+            // Botão anterior
+            const prevLi = document.createElement('li');
+            prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+            prevLi.innerHTML = `<a class="page-link" href="#" data-page="${currentPage - 1}">Anterior</a>`;
+            pagination.appendChild(prevLi);
+
+            // Números das páginas
+            for (let i = 1; i <= totalPages; i++) {
+                const li = document.createElement('li');
+                li.className = `page-item ${currentPage === i ? 'active' : ''}`;
+                li.innerHTML = `<a class="page-link" href="#" data-page="${i}">${i}</a>`;
+                pagination.appendChild(li);
+            }
+
+            // Botão próximo
+            const nextLi = document.createElement('li');
+            nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+            nextLi.innerHTML = `<a class="page-link" href="#" data-page="${currentPage + 1}">Próximo</a>`;
+            pagination.appendChild(nextLi);
+
+            // Event listeners para paginação
+            pagination.querySelectorAll('a.page-link').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const page = parseInt(this.dataset.page);
+                    if (page >= 1 && page <= totalPages) {
+                        currentPage = page;
+                        displayUsers();
+                    }
+                });
+            });
+        }
+
+        function updateUsersCount() {
+            const countElement = document.getElementById('users-count');
+            countElement.textContent = `Total: ${users.length} usuários`;
+        }
+
+        function updateFilterChatbotSelect() {
+            const select = document.getElementById('filter-chatbot');
+            select.innerHTML = '<option value="">Todos os Chatbots</option>';
+            
+            chatbots.forEach(chatbot => {
+                const option = document.createElement('option');
+                option.value = chatbot.id;
+                option.textContent = chatbot.name;
+                select.appendChild(option);
+            });
+
+            // Também atualizar select de importação
+            const importSelect = document.getElementById('import-chatbot');
+            importSelect.innerHTML = '<option value="">Escolha um chatbot...</option>';
+            
+            chatbots.filter(c => c.status === 'online').forEach(chatbot => {
+                const option = document.createElement('option');
+                option.value = chatbot.id;
+                option.textContent = chatbot.name;
+                importSelect.appendChild(option);
+            });
+        }
+
+        function filterUsers() {
+            const chatbotFilter = document.getElementById('filter-chatbot').value;
+            const searchTerm = document.getElementById('search-users').value.toLowerCase();
+            const statusFilter = document.getElementById('filter-status').value;
+
+            let filteredUsers = users.filter(user => {
+                const matchesChatbot = !chatbotFilter || user.chatbotId == chatbotFilter;
+                const matchesSearch = !searchTerm || 
+                    user.first_name.toLowerCase().includes(searchTerm) ||
+                    user.last_name?.toLowerCase().includes(searchTerm) ||
+                    user.username?.toLowerCase().includes(searchTerm) ||
+                    user.chat_id.toString().includes(searchTerm);
+                const matchesStatus = !statusFilter || user.status === statusFilter;
+
+                return matchesChatbot && matchesSearch && matchesStatus;
+            });
+
+            currentPage = 1; // Reset para primeira página
+            displayUsers(filteredUsers);
+        }
+
+        function refreshUsers() {
+            showLoading('Atualizando lista de usuários...');
+            
+            setTimeout(() => {
+                loadUsers();
+                hideLoading();
+                showNotification('Lista de usuários atualizada!', 'success');
+            }, 1000);
+        }
+
+        function fetchTelegramUsers() {
+            const chatbotId = document.getElementById('import-chatbot').value;
+            
+            if (!chatbotId) {
+                alert('Selecione um chatbot primeiro!');
+                return;
+            }
+
+            const chatbot = chatbots.find(c => c.id == chatbotId);
+            
+            if (!chatbot || !chatbot.token) {
+                alert('Token do chatbot não encontrado!');
+                return;
+            }
+
+            showLoading('Buscando usuários na API do Telegram...');
+            
+            // Implementar busca real via API do Telegram
+            fetchUsersFromTelegram(chatbot.token, chatbotId)
+                .then(fetchedUsers => {
+                    if (fetchedUsers.length === 0) {
+                        hideLoading();
+                        showNotification('Nenhum usuário encontrado. O bot precisa ter interações ativas.', 'warning');
+                        return;
+                    }
+
+                    // Adicionar usuários que não existem ainda
+                    let addedCount = 0;
+                    fetchedUsers.forEach(user => {
+                        if (!users.some(u => u.chat_id === user.chat_id && u.chatbotId === user.chatbotId)) {
+                            users.push(user);
+                            addedCount++;
+                        }
+                    });
+
+                    localStorage.setItem('users', JSON.stringify(users));
+                    loadUsers();
+                    hideLoading();
+                    
+                    bootstrap.Modal.getInstance(document.getElementById('importUsersModal')).hide();
+                    showNotification(`${addedCount} novos usuários importados da API!`, 'success');
+                })
+                .catch(error => {
+                    hideLoading();
+                    console.error('Erro ao buscar usuários:', error);
+                    showNotification('Erro ao buscar usuários: ' + error.message, 'danger');
+                });
+        }
+
+        async function fetchUsersFromTelegram(botToken, chatbotId) {
+            try {
+                // Primeira tentativa: buscar atualizações recentes
+                const updatesResponse = await fetch(`https://api.telegram.org/bot${botToken}/getUpdates?limit=100`);
+                
+                if (!updatesResponse.ok) {
+                    const errorData = await updatesResponse.json();
+                    throw new Error(errorData.description || 'Erro na API do Telegram');
+                }
+
+                const updatesData = await updatesResponse.json();
+                
+                if (!updatesData.ok) {
+                    throw new Error(updatesData.description || 'Erro na resposta da API');
+                }
+
+                const updates = updatesData.result;
+                const usersMap = new Map();
+
+                // Processar updates para extrair informações dos usuários e salvar mensagens
+                updates.forEach(update => {
+                    let user = null;
+                    let chatId = null;
+                    let messageDate = null;
+                    let messageType = 'text';
+                    let messageContent = '';
+
+                    if (update.message) {
+                        user = update.message.from;
+                        chatId = update.message.chat.id;
+                        messageDate = new Date(update.message.date * 1000);
+                        
+                        // Determinar tipo e conteúdo da mensagem
+                        if (update.message.text) {
+                            messageType = 'text';
+                            messageContent = update.message.text;
+                        } else if (update.message.photo) {
+                            messageType = 'photo';
+                            messageContent = update.message.caption || 'Foto enviada';
+                        } else if (update.message.document) {
+                            messageType = 'document';
+                            messageContent = update.message.caption || `Documento: ${update.message.document.file_name || 'arquivo'}`;
+                        } else if (update.message.video) {
+                            messageType = 'video';
+                            messageContent = update.message.caption || 'Vídeo enviado';
+                        } else if (update.message.audio) {
+                            messageType = 'audio';
+                            messageContent = 'Áudio enviado';
+                        } else if (update.message.voice) {
+                            messageType = 'voice';
+                            messageContent = 'Mensagem de voz';
+                        } else if (update.message.sticker) {
+                            messageType = 'sticker';
+                            messageContent = `Sticker: ${update.message.sticker.emoji || '😊'}`;
+                        } else if (update.message.location) {
+                            messageType = 'location';
+                            messageContent = `Localização: ${update.message.location.latitude}, ${update.message.location.longitude}`;
+                        }
+                        
+                        // Salvar mensagem recebida no histórico
+                        saveMessageToHistory(chatId, parseInt(chatbotId), 'received', messageType, messageContent, 'delivered');
+                        
+                    } else if (update.callback_query) {
+                        user = update.callback_query.from;
+                        chatId = update.callback_query.message.chat.id;
+                        messageDate = new Date(update.callback_query.message.date * 1000);
+                        messageType = 'callback';
+                        messageContent = `Callback: ${update.callback_query.data || 'botão pressionado'}`;
+                        
+                        // Salvar callback no histórico
+                        saveMessageToHistory(chatId, parseInt(chatbotId), 'received', messageType, messageContent, 'delivered');
+                        
+                    } else if (update.inline_query) {
+                        user = update.inline_query.from;
+                        chatId = user.id; // Para inline queries, usar o user ID
+                        messageDate = new Date();
+                        messageType = 'inline_query';
+                        messageContent = `Consulta inline: ${update.inline_query.query || 'consulta vazia'}`;
+                        
+                        // Salvar consulta inline no histórico
+                        saveMessageToHistory(chatId, parseInt(chatbotId), 'received', messageType, messageContent, 'delivered');
+                    }
+
+                    if (user && chatId) {
+                        const userId = user.id;
+                        
+                        if (!usersMap.has(userId) || usersMap.get(userId).last_interaction < messageDate) {
+                            usersMap.set(userId, {
+                                id: Date.now() + Math.random(),
+                                chat_id: chatId,
+                                first_name: user.first_name || 'Unknown',
+                                last_name: user.last_name || '',
+                                username: user.username || null,
+                                chatbotId: parseInt(chatbotId),
+                                status: 'active',
+                                last_interaction: messageDate.toISOString(),
+                                message_count: (usersMap.get(userId)?.message_count || 0) + 1,
+                                joined_date: usersMap.get(userId)?.joined_date || messageDate.toISOString(),
+                                language_code: user.language_code || null,
+                                is_bot: user.is_bot || false
+                            });
+                        } else {
+                            // Incrementar contador de mensagens
+                            const existingUser = usersMap.get(userId);
+                            existingUser.message_count++;
+                        }
+                    }
+                });
+
+                // Buscar informações adicionais do bot
+                const botInfoResponse = await fetch(`https://api.telegram.org/bot${botToken}/getMe`);
+                const botInfo = await botInfoResponse.json();
+                
+                if (botInfo.ok) {
+                    console.log(`Conectado ao bot: ${botInfo.result.first_name} (@${botInfo.result.username})`);
+                }
+
+                return Array.from(usersMap.values());
+
+            } catch (error) {
+                // Se houver erro de CORS ou rede, mostrar informação útil
+                if (error.message.includes('CORS') || error.name === 'TypeError') {
+                    throw new Error('Erro de CORS: Use uma extensão CORS ou implemente via backend');
+                }
+                throw error;
+            }
+        }
+
+        function importUsers() {
+            const chatbotId = document.getElementById('import-chatbot').value;
+            const manualData = document.getElementById('manual-users').value;
+            const csvFile = document.getElementById('csv-file').files[0];
+
+            if (!chatbotId) {
+                alert('Selecione um chatbot!');
+                return;
+            }
+
+            if (manualData) {
+                try {
+                    const userData = JSON.parse(manualData);
+                    userData.forEach(user => {
+                        const newUser = {
+                            id: Date.now() + Math.random(),
+                            chat_id: user.user_id || user.chat_id,
+                            first_name: user.first_name,
+                            last_name: user.last_name || '',
+                            username: user.username || null,
+                            chatbotId: parseInt(chatbotId),
+                            status: user.status || 'active',
+                            last_interaction: user.last_seen || new Date().toISOString(),
+                            message_count: user.message_count || 1,
+                            joined_date: user.joined_date || new Date().toISOString()
+                        };
+
+                        if (!users.some(u => u.chat_id === newUser.chat_id && u.chatbotId === newUser.chatbotId)) {
+                            users.push(newUser);
+                        }
+                    });
+
+                    localStorage.setItem('users', JSON.stringify(users));
+                    loadUsers();
+                    
+                    bootstrap.Modal.getInstance(document.getElementById('importUsersModal')).hide();
+                    showNotification(`${userData.length} usuários importados!`, 'success');
+                    
+                } catch (error) {
+                    alert('Erro no formato JSON! Verifique a sintaxe.');
+                }
+            } else if (csvFile) {
+                // Implementação básica para CSV (seria mais complexa em produção)
+                showNotification('Funcionalidade de CSV será implementada em breve', 'info');
+            } else {
+                alert('Forneça dados JSON ou selecione um arquivo CSV!');
+            }
+        }
+
+        function exportUsers() {
+            if (users.length === 0) {
+                alert('Nenhum usuário para exportar!');
+                return;
+            }
+
+            const dataStr = JSON.stringify(users, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(dataBlob);
+            link.download = `usuarios_${new Date().toISOString().slice(0, 10)}.json`;
+            link.click();
+            
+            showNotification('Dados exportados com sucesso!', 'success');
+        }
+
+        function viewUserDetails(userId) {
+            const user = users.find(u => u.id === userId);
+            if (!user) return;
+
+            // Limpar qualquer backdrop que possa estar presente
+            cleanupModalBackdrops();
+
+            const chatbot = chatbots.find(c => c.id === user.chatbotId);
+            const content = document.getElementById('user-details-content');
+            
+            // Carregar histórico real de mensagens
+            const userHistory = getUserMessageHistory(user.chat_id, user.chatbotId);
+            const recentMessages = getRecentMessages(user.chat_id);
+            
+            content.innerHTML = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card border-0 bg-light">
+                            <div class="card-body">
+                                <h6 class="card-title">Informações Básicas</h6>
+                                <p><strong>Nome:</strong> ${user.first_name} ${user.last_name || ''}</p>
+                                <p><strong>Username:</strong> ${user.username ? '@' + user.username : 'N/A'}</p>
+                                <p><strong>Chat ID:</strong> <code>${user.chat_id}</code></p>
+                                <p><strong>Status:</strong> <span class="badge bg-${user.status === 'active' ? 'success' : user.status === 'blocked' ? 'danger' : 'secondary'}">${user.status}</span></p>
+                                ${user.language_code ? `<p><strong>Idioma:</strong> ${user.language_code}</p>` : ''}
+                                ${user.is_bot ? `<p><span class="badge bg-warning">Bot</span></p>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card border-0 bg-light">
+                            <div class="card-body">
+                                <h6 class="card-title">Estatísticas</h6>
+                                <p><strong>Chatbot:</strong> ${chatbot ? chatbot.name : 'N/A'}</p>
+                                <p><strong>Total de Mensagens:</strong> ${user.message_count || 0}</p>
+                                <p><strong>Mensagens Enviadas:</strong> ${userHistory.sentCount}</p>
+                                <p><strong>Mensagens Recebidas:</strong> ${userHistory.receivedCount}</p>
+                                <p><strong>Última Interação:</strong> ${formatDate(user.last_interaction)}</p>
+                                <p><strong>Data de Entrada:</strong> ${formatDate(user.joined_date)}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <h6>Histórico Recente <small class="text-muted">(Últimas ${recentMessages.length} interações)</small></h6>
+                    <div class="card" style="max-height: 400px; overflow-y: auto;">
+                        <div class="card-body">
+                            ${recentMessages.length > 0 ? generateMessageHistoryHTML(recentMessages) : `
+                                <div class="text-center text-muted py-3">
+                                    <i class="bi bi-chat-dots fs-3 d-block mb-2"></i>
+                                    <p>Nenhuma interação registrada ainda.</p>
+                                    <small>As mensagens aparecerão aqui quando o usuário interagir com o bot.</small>
+                                </div>
+                            `}
+                        </div>
+                    </div>
+                    <div class="mt-2 d-flex gap-2">
+                        <button class="btn btn-sm btn-outline-primary" onclick="refreshUserHistory('${user.chat_id}', '${user.chatbotId}')">
+                            <i class="bi bi-arrow-clockwise"></i> Atualizar Histórico
+                        </button>
+                        <button class="btn btn-sm btn-outline-info" onclick="exportUserHistory('${user.chat_id}')">
+                            <i class="bi bi-download"></i> Exportar Histórico
+                        </button>
+                        ${user.status !== 'blocked' ? `
+                            <button class="btn btn-sm btn-primary" onclick="sendQuickMessage('${user.chat_id}')">
+                                <i class="bi bi-envelope"></i> Enviar Mensagem
+                            </button>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+
+            const modal = new bootstrap.Modal(document.getElementById('userDetailsModal'));
+            modal.show();
+        }
+
+        // Função utilitária para limpar backdrops órfãos
+        function cleanupModalBackdrops() {
+            const backdrops = document.querySelectorAll('.modal-backdrop');
+            backdrops.forEach(backdrop => {
+                backdrop.remove();
+            });
+            
+            // Remover classe modal-open do body se não houver modais ativos
+            const activeModals = document.querySelectorAll('.modal.show');
+            if (activeModals.length === 0) {
+                document.body.classList.remove('modal-open');
+                document.body.style.overflow = '';
+                document.body.style.paddingRight = '';
+            }
+        }
+
+        // ===== GERENCIAMENTO DE HISTÓRICO DE MENSAGENS =====
+        
+        function getUserMessageHistory(chatId, chatbotId) {
+            const messageHistory = JSON.parse(localStorage.getItem('messageHistory')) || [];
+            const userMessages = messageHistory.filter(msg => 
+                msg.chat_id === chatId && msg.chatbot_id === chatbotId
+            );
+            
+            return {
+                sentCount: userMessages.filter(msg => msg.direction === 'sent').length,
+                receivedCount: userMessages.filter(msg => msg.direction === 'received').length,
+                totalMessages: userMessages.length,
+                messages: userMessages
+            };
+        }
+
+        function getRecentMessages(chatId, limit = 10) {
+            const messageHistory = JSON.parse(localStorage.getItem('messageHistory')) || [];
+            return messageHistory
+                .filter(msg => msg.chat_id === chatId)
+                .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+                .slice(0, limit);
+        }
+
+        function generateMessageHistoryHTML(messages) {
+            if (messages.length === 0) {
+                return '<p class="text-muted text-center">Nenhuma mensagem encontrada.</p>';
+            }
+
+            return messages.map(msg => {
+                const isFromBot = msg.direction === 'sent';
+                const timeStr = formatDate(msg.timestamp);
+                const statusIcon = msg.status === 'delivered' ? 'check-all' : 
+                                 msg.status === 'sent' ? 'check' : 'x-circle';
+                const statusColor = msg.status === 'delivered' ? 'success' : 
+                                  msg.status === 'sent' ? 'primary' : 'danger';
+
+                return `
+                    <div class="d-flex mb-3 ${isFromBot ? 'justify-content-end' : 'justify-content-start'}">
+                        <div class="message-bubble ${isFromBot ? 'bg-primary text-white' : 'bg-light'}" 
+                             style="max-width: 70%; padding: 8px 12px; border-radius: 15px;">
+                            <div class="d-flex align-items-start">
+                                ${!isFromBot ? '<i class="bi bi-person-circle me-2 text-muted"></i>' : ''}
+                                <div class="flex-grow-1">
+                                    <small class="d-block ${isFromBot ? 'text-white-50' : 'text-muted'}" style="font-size: 0.7rem;">
+                                        ${isFromBot ? 'Bot' : 'Usuário'} • ${timeStr}
+                                    </small>
+                                    <div class="message-content">
+                                        ${msg.type === 'text' ? msg.content : `
+                                            <div class="d-flex align-items-center">
+                                                <i class="bi bi-${getMediaIcon(msg.type)} me-1"></i>
+                                                <span>${getMediaLabel(msg.type)}</span>
+                                            </div>
+                                            ${msg.content ? `<small class="d-block mt-1">${msg.content}</small>` : ''}
+                                        `}
+                                    </div>
+                                </div>
+                                ${isFromBot ? `<i class="bi bi-${statusIcon} ms-2 text-${statusColor}"></i>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function getMediaIcon(type) {
+            const icons = {
+                'photo': 'image',
+                'document': 'file-earmark',
+                'video': 'play-circle',
+                'audio': 'music-note',
+                'voice': 'mic',
+                'sticker': 'emoji-smile',
+                'location': 'geo-alt'
+            };
+            return icons[type] || 'file';
+        }
+
+        function getMediaLabel(type) {
+            const labels = {
+                'photo': 'Foto',
+                'document': 'Documento',
+                'video': 'Vídeo',
+                'audio': 'Áudio',
+                'voice': 'Áudio',
+                'sticker': 'Sticker',
+                'location': 'Localização'
+            };
+            return labels[type] || 'Mídia';
+        }
+
+        function saveMessageToHistory(chatId, chatbotId, direction, type, content, status = 'sent') {
+            // Usar a versão com ID, passando null para o telegramMessageId
+            saveMessageToHistoryWithId(chatId, chatbotId, direction, type, content, status, null, null);
+        }
+
+        function refreshUserHistory(chatId, chatbotId) {
+            showLoading('Buscando histórico atualizado da API do Telegram...');
+            
+            // Converter chatbotId para número se necessário
+            const numericChatbotId = typeof chatbotId === 'string' ? parseInt(chatbotId) : chatbotId;
+            
+            // Buscar o chatbot para obter o token
+            const chatbot = chatbots.find(c => c.id === numericChatbotId);
+            
+            if (!chatbot || !chatbot.token) {
+                hideLoading();
+                showNotification('Token do chatbot não encontrado!', 'danger');
+                return;
+            }
+
+            // Fechar o modal atual completamente antes de reabrir
+            const currentModal = bootstrap.Modal.getInstance(document.getElementById('userDetailsModal'));
+            if (currentModal) {
+                currentModal.hide();
+            }
+
+            // Fazer chamada real para a API do Telegram para buscar atualizações
+            fetchUserHistoryFromTelegram(chatbot.token, chatId, numericChatbotId)
+                .then(newMessagesCount => {
+                    hideLoading();
+                    
+                    if (newMessagesCount > 0) {
+                        showNotification(`${newMessagesCount} nova(s) mensagem(ns) encontrada(s)!`, 'success');
+                    } else {
+                        showNotification('Histórico atualizado! Nenhuma nova mensagem encontrada.', 'info');
+                    }
+                    
+                    // Aguardar um pouco para garantir que o modal anterior foi fechado completamente
+                    setTimeout(() => {
+                        // Limpar qualquer backdrop que possa ter ficado
+                        const backdrops = document.querySelectorAll('.modal-backdrop');
+                        backdrops.forEach(backdrop => backdrop.remove());
+                        
+                        // Reabrir modal com dados atualizados
+                        const user = users.find(u => u.chat_id == chatId && u.chatbotId == numericChatbotId);
+                        if (user) {
+                            viewUserDetails(user.id);
+                        } else {
+                            console.error('Usuário não encontrado para chatId:', chatId, 'chatbotId:', numericChatbotId);
+                            console.log('Usuários disponíveis:', users.map(u => ({chatId: u.chat_id, chatbotId: u.chatbotId})));
+                        }
+                    }, 300);
+                })
+                .catch(error => {
+                    hideLoading();
+                    console.error('Erro ao buscar histórico:', error);
+                    showNotification('Erro ao atualizar histórico: ' + error.message, 'danger');
+                    
+                    // Mesmo com erro, reabrir o modal após limpar backdrop
+                    setTimeout(() => {
+                        const backdrops = document.querySelectorAll('.modal-backdrop');
+                        backdrops.forEach(backdrop => backdrop.remove());
+                        
+                        const user = users.find(u => u.chat_id == chatId && u.chatbotId == numericChatbotId);
+                        if (user) {
+                            viewUserDetails(user.id);
+                        }
+                    }, 300);
+                });
+        }
+
+        async function fetchUserHistoryFromTelegram(botToken, specificChatId, chatbotId) {
+            try {
+                // Buscar atualizações mais recentes da API
+                const updatesResponse = await fetch(`https://api.telegram.org/bot${botToken}/getUpdates?limit=100&offset=-100`);
+                
+                if (!updatesResponse.ok) {
+                    const errorData = await updatesResponse.json();
+                    throw new Error(errorData.description || 'Erro na API do Telegram');
+                }
+
+                const updatesData = await updatesResponse.json();
+                
+                if (!updatesData.ok) {
+                    throw new Error(updatesData.description || 'Erro na resposta da API');
+                }
+
+                const updates = updatesData.result;
+                let newMessagesCount = 0;
+                
+                // Obter histórico atual para evitar duplicatas
+                const currentHistory = JSON.parse(localStorage.getItem('messageHistory')) || [];
+                const userCurrentMessages = currentHistory.filter(msg => 
+                    msg.chat_id == specificChatId && msg.chatbot_id == chatbotId
+                );
+
+                // Processar apenas updates do chat específico
+                updates.forEach(update => {
+                    let user = null;
+                    let chatId = null;
+                    let messageDate = null;
+                    let messageType = 'text';
+                    let messageContent = '';
+                    let messageId = null;
+
+                    if (update.message && update.message.chat.id == specificChatId) {
+                        user = update.message.from;
+                        chatId = update.message.chat.id;
+                        messageDate = new Date(update.message.date * 1000);
+                        messageId = update.message.message_id;
+                        
+                        // Verificar se já existe no histórico
+                        const exists = userCurrentMessages.some(msg => 
+                            msg.telegram_message_id === messageId || 
+                            (Math.abs(new Date(msg.timestamp) - messageDate) < 1000 && msg.content === update.message.text)
+                        );
+                        
+                        if (!exists) {
+                            // Determinar tipo e conteúdo da mensagem
+                            if (update.message.text) {
+                                messageType = 'text';
+                                messageContent = update.message.text;
+                            } else if (update.message.photo) {
+                                messageType = 'photo';
+                                messageContent = update.message.caption || 'Foto enviada';
+                            } else if (update.message.document) {
+                                messageType = 'document';
+                                messageContent = update.message.caption || `Documento: ${update.message.document.file_name || 'arquivo'}`;
+                            } else if (update.message.video) {
+                                messageType = 'video';
+                                messageContent = update.message.caption || 'Vídeo enviado';
+                            } else if (update.message.audio) {
+                                messageType = 'audio';
+                                messageContent = 'Áudio enviado';
+                            } else if (update.message.voice) {
+                                messageType = 'voice';
+                                messageContent = 'Mensagem de voz';
+                            } else if (update.message.sticker) {
+                                messageType = 'sticker';
+                                messageContent = `Sticker: ${update.message.sticker.emoji || '😊'}`;
+                            } else if (update.message.location) {
+                                messageType = 'location';
+                                messageContent = `Localização: ${update.message.location.latitude}, ${update.message.location.longitude}`;
+                            }
+                            
+                            // Salvar nova mensagem no histórico
+                            saveMessageToHistoryWithId(chatId, chatbotId, 'received', messageType, messageContent, 'delivered', messageId, messageDate);
+                            newMessagesCount++;
+                        }
+                        
+                    } else if (update.callback_query && update.callback_query.message.chat.id == specificChatId) {
+                        user = update.callback_query.from;
+                        chatId = update.callback_query.message.chat.id;
+                        messageDate = new Date(update.callback_query.message.date * 1000);
+                        messageType = 'callback';
+                        messageContent = `Callback: ${update.callback_query.data || 'botão pressionado'}`;
+                        
+                        // Verificar se já existe
+                        const exists = userCurrentMessages.some(msg => 
+                            Math.abs(new Date(msg.timestamp) - messageDate) < 1000 && msg.content === messageContent
+                        );
+                        
+                        if (!exists) {
+                            saveMessageToHistoryWithId(chatId, chatbotId, 'received', messageType, messageContent, 'delivered', null, messageDate);
+                            newMessagesCount++;
+                        }
+                    }
+                });
+
+                // Atualizar contador de mensagens do usuário se houver novas mensagens
+                if (newMessagesCount > 0) {
+                    const user = users.find(u => u.chat_id == specificChatId && u.chatbotId == chatbotId);
+                    if (user) {
+                        user.message_count = (user.message_count || 0) + newMessagesCount;
+                        user.last_interaction = new Date().toISOString();
+                        localStorage.setItem('users', JSON.stringify(users));
+                    }
+                }
+
+                return newMessagesCount;
+
+            } catch (error) {
+                if (error.message.includes('CORS') || error.name === 'TypeError') {
+                    throw new Error('Erro de CORS: Use uma extensão CORS ou implemente via backend');
+                }
+                throw error;
+            }
+        }
+
+        function saveMessageToHistoryWithId(chatId, chatbotId, direction, type, content, status = 'sent', telegramMessageId = null, messageDate = null) {
+            const messageHistory = JSON.parse(localStorage.getItem('messageHistory')) || [];
+            
+            const message = {
+                id: Date.now() + Math.random(),
+                chat_id: chatId,
+                chatbot_id: chatbotId,
+                direction: direction, // 'sent' ou 'received'
+                type: type, // 'text', 'photo', 'document', etc.
+                content: content,
+                status: status, // 'sent', 'delivered', 'failed'
+                timestamp: messageDate ? messageDate.toISOString() : new Date().toISOString(),
+                telegram_message_id: telegramMessageId // ID da mensagem do Telegram para evitar duplicatas
+            };
+
+            messageHistory.push(message);
+            
+            // Manter apenas os últimos 1000 registros por questão de performance
+            if (messageHistory.length > 1000) {
+                messageHistory.splice(0, messageHistory.length - 1000);
+            }
+
+            localStorage.setItem('messageHistory', JSON.stringify(messageHistory));
+        }
+
+        function exportUserHistory(chatId) {
+            const messageHistory = JSON.parse(localStorage.getItem('messageHistory')) || [];
+            const userMessages = messageHistory.filter(msg => msg.chat_id === chatId);
+            
+            if (userMessages.length === 0) {
+                showNotification('Nenhuma mensagem para exportar!', 'warning');
+                return;
+            }
+
+            const dataStr = JSON.stringify(userMessages, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(dataBlob);
+            link.download = `historico_${chatId}_${new Date().toISOString().slice(0, 10)}.json`;
+            link.click();
+            
+            showNotification(`Histórico exportado (${userMessages.length} mensagens)!`, 'success');
+        }
+
+        function sendQuickMessage(chatId) {
+            // Fechar modal atual completamente
+            const userModal = bootstrap.Modal.getInstance(document.getElementById('userDetailsModal'));
+            if (userModal) {
+                userModal.hide();
+            }
+
+            // Limpar backdrops após um breve delay
+            setTimeout(() => {
+                cleanupModalBackdrops();
+            }, 300);
+
+            // Redirecionar para seção de mensagens
+            document.querySelector('a[href="#messages-section"]').click();
+            
+            setTimeout(() => {
+                // Pré-selecionar o chat ID do usuário
+                const checkbox = document.querySelector(`#chat-ids-checkboxes input[value="${chatId}"]`);
+                if (checkbox) {
+                    // Desmarcar todos
+                    document.querySelectorAll('#chat-ids-checkboxes input[type="checkbox"]').forEach(cb => {
+                        cb.checked = false;
+                    });
+                    // Marcar apenas este usuário
+                    checkbox.checked = true;
+                    
+                    // Focar no campo de mensagem
+                    document.getElementById('message-content').focus();
+                    
+                    showNotification('Usuário selecionado para envio!', 'info');
+                }
+            }, 500);
+        }
+
+        // Expor funções globalmente
+        window.refreshUserHistory = refreshUserHistory;
+        window.exportUserHistory = exportUserHistory;
+        window.sendQuickMessage = sendQuickMessage;
+        window.cleanupModalBackdrops = cleanupModalBackdrops;
+
+        // ===== FIM DO GERENCIAMENTO DE HISTÓRICO =====
+
+        function blockUser(userId) {
+            console.log('Função blockUser chamada para usuário:', userId, typeof userId);
+            console.log('Lista de usuários:', users.map(u => ({ id: u.id, name: u.first_name })));
+            
+            if (!confirm('Tem certeza que deseja bloquear este usuário?')) {
+                return;
+            }
+
+            const user = users.find(u => u.id === userId);
+            console.log('Usuário encontrado:', user);
+            
+            if (user) {
+                user.status = 'blocked';
+                localStorage.setItem('users', JSON.stringify(users));
+                
+                // Recarregar a lista de usuários para atualizar a interface
+                loadUsers();
+                
+                showNotification(`Usuário ${user.first_name} bloqueado com sucesso!`, 'warning');
+                console.log('Usuário bloqueado:', user);
+            } else {
+                console.error('Usuário não encontrado com ID:', userId);
+                console.error('Tipo do ID:', typeof userId);
+                console.error('IDs disponíveis:', users.map(u => u.id));
+                showNotification('Erro: Usuário não encontrado!', 'danger');
+            }
+        }
+
+        function unblockUser(userId) {
+            console.log('Função unblockUser chamada para usuário:', userId, typeof userId);
+            
+            const user = users.find(u => u.id === userId);
+            console.log('Usuário encontrado:', user);
+            
+            if (user) {
+                user.status = 'active';
+                localStorage.setItem('users', JSON.stringify(users));
+                
+                // Recarregar a lista de usuários para atualizar a interface
+                loadUsers();
+                
+                showNotification(`Usuário ${user.first_name} desbloqueado com sucesso!`, 'success');
+                console.log('Usuário desbloqueado:', user);
+            } else {
+                console.error('Usuário não encontrado com ID:', userId);
+                console.error('Tipo do ID:', typeof userId);
+                console.error('IDs disponíveis:', users.map(u => u.id));
+                showNotification('Erro: Usuário não encontrado!', 'danger');
+            }
+        }
+
+        function toggleAllUsersSelection() {
+            const selectAll = document.getElementById('select-all-users');
+            const checkboxes = document.querySelectorAll('.user-checkbox');
+            
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = selectAll.checked;
+            });
+            
+            updateBulkMessageButton();
+        }
+
+        function toggleTableUsersSelection() {
+            const selectAllTable = document.getElementById('select-all-table');
+            const checkboxes = document.querySelectorAll('.user-checkbox');
+            
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = selectAllTable.checked;
+            });
+            
+            updateBulkMessageButton();
+        }
+
+        function updateBulkMessageButton() {
+            const checkedBoxes = document.querySelectorAll('.user-checkbox:checked');
+            const bulkButton = document.getElementById('bulk-message-btn');
+            
+            bulkButton.disabled = checkedBoxes.length === 0;
+            bulkButton.innerHTML = checkedBoxes.length > 0 ? 
+                `<i class="bi bi-envelope"></i> Mensagem em Massa (${checkedBoxes.length})` :
+                '<i class="bi bi-envelope"></i> Mensagem em Massa';
+        }
+
+        function sendBulkMessage() {
+            const checkedBoxes = document.querySelectorAll('.user-checkbox:checked');
+            const selectedUserIds = Array.from(checkedBoxes).map(cb => parseFloat(cb.value));
+            
+            if (selectedUserIds.length === 0) {
+                alert('Selecione pelo menos um usuário!');
+                return;
+            }
+
+            // Redirecionar para seção de mensagens com usuários pré-selecionados
+            document.querySelector('a[href="#messages-section"]').click();
+            
+            setTimeout(() => {
+                // Pré-selecionar os chat IDs correspondentes
+                selectedUserIds.forEach(userId => {
+                    const user = users.find(u => u.id === userId);
+                    if (user) {
+                        const checkbox = document.querySelector(`#chat-ids-checkboxes input[value="${user.chat_id}"]`);
+                        if (checkbox) {
+                            checkbox.checked = true;
+                        }
+                    }
+                });
+                
+                showNotification(`${selectedUserIds.length} usuários selecionados para envio!`, 'info');
+            }, 500);
+        }
+
+        function sendPrivateMessage(userId) {
+            const user = users.find(u => u.id === userId);
+            if (!user) return;
+
+            // Redirecionar para seção de mensagens
+            document.querySelector('a[href="#messages-section"]').click();
+            
+            setTimeout(() => {
+                // Pré-selecionar o chat ID do usuário
+                const checkbox = document.querySelector(`#chat-ids-checkboxes input[value="${user.chat_id}"]`);
+                if (checkbox) {
+                    checkbox.checked = true;
+                    // Desmarcar outros
+                    document.querySelectorAll('#chat-ids-checkboxes input[type="checkbox"]').forEach(cb => {
+                        if (cb !== checkbox) cb.checked = false;
+                    });
+                }
+                
+                showNotification(`Usuário ${user.first_name} selecionado para envio!`, 'info');
+            }, 500);
+        }
+
+        function toggleChatbotStatus(chatbotId) {
+            const chatbot = chatbots.find(c => c.id === chatbotId);
+            if (chatbot) {
+                chatbot.status = chatbot.status === 'online' ? 'offline' : 'online';
+                localStorage.setItem('chatbots', JSON.stringify(chatbots));
+                loadChatbots();
+                showNotification(`Chatbot ${chatbot.status === 'online' ? 'ativado' : 'desativado'}!`, 'success');
+            }
+        }
+
+        function editChatbot(chatbotId) {
+            showNotification('Funcionalidade de edição será implementada em breve', 'info');
+        }
+
+        function deleteChatbot(chatbotId) {
+            if (confirm('Tem certeza que deseja excluir este chatbot?')) {
+                chatbots = chatbots.filter(c => c.id !== chatbotId);
+                localStorage.setItem('chatbots', JSON.stringify(chatbots));
+                loadChatbots();
+                showNotification('Chatbot excluído com sucesso!', 'success');
+            }
+        }
+
+        function updateChatbotSelect() {
+            const select = document.getElementById('select-chatbot');
+            select.innerHTML = '<option value="">Escolha um chatbot...</option>';
+            
+            chatbots.filter(c => c.status === 'online').forEach(chatbot => {
+                const option = document.createElement('option');
+                option.value = chatbot.id;
+                option.textContent = chatbot.name;
+                select.appendChild(option);
+            });
+        }
+
+        // Gerenciamento de Chat IDs
+        function addChatId() {
+            const chatId = document.getElementById('chat-id-value').value;
+            const name = document.getElementById('chat-id-name').value;
+            const type = document.getElementById('chat-id-type').value;
+
+            if (!chatId) {
+                alert('Chat ID é obrigatório!');
+                return;
+            }
+
+            // Verificar se já existe
+            if (chatIds.some(c => c.chatId === chatId)) {
+                alert('Este Chat ID já foi adicionado!');
+                return;
+            }
+
+            const chatIdObj = {
+                id: Date.now(),
+                chatId: chatId,
+                name: name || chatId,
+                type: type,
+                addedAt: new Date().toISOString()
+            };
+
+            chatIds.push(chatIdObj);
+            localStorage.setItem('chatIds', JSON.stringify(chatIds));
+            
+            loadChatIds();
+            
+            // Limpar formulário e fechar modal
+            document.getElementById('chat-id-form').reset();
+            bootstrap.Modal.getInstance(document.getElementById('addChatIdModal')).hide();
+            
+            showNotification('Chat ID adicionado com sucesso!', 'success');
+        }
+
+        function loadChatIds() {
+            const container = document.getElementById('chat-ids-container');
+            const checkboxContainer = document.getElementById('chat-ids-checkboxes');
+            
+            container.innerHTML = '';
+            checkboxContainer.innerHTML = '';
+
+            if (chatIds.length === 0) {
+                container.innerHTML = '<p class="text-muted text-center">Nenhum Chat ID adicionado ainda.</p>';
+                return;
+            }
+
+            chatIds.forEach(chat => {
+                // Card para visualização
+                const card = document.createElement('div');
+                card.className = 'card mb-2';
+                card.innerHTML = `
+                    <div class="card-body py-2">
+                        <div class="row align-items-center">
+                            <div class="col-md-3">
+                                <strong>${chat.name}</strong>
+                            </div>
+                            <div class="col-md-3">
+                                <code>${chat.chatId}</code>
+                            </div>
+                            <div class="col-md-2">
+                                <span class="badge bg-secondary">${chat.type}</span>
+                            </div>
+                            <div class="col-md-2">
+                                <small class="text-muted">${formatDate(chat.addedAt)}</small>
+                            </div>
+                            <div class="col-md-2 text-end">
+                                <button class="btn btn-sm btn-outline-danger" data-chat-id="${chat.id}" data-action="delete-chat">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+
+                // Checkbox para seleção
+                const checkboxDiv = document.createElement('div');
+                checkboxDiv.className = 'form-check mb-2';
+                checkboxDiv.innerHTML = `
+                    <input class="form-check-input" type="checkbox" value="${chat.chatId}" id="chat-${chat.id}">
+                    <label class="form-check-label" for="chat-${chat.id}">
+                        <strong>${chat.name}</strong> <code class="text-muted">${chat.chatId}</code>
+                        <span class="badge bg-secondary ms-1">${chat.type}</span>
+                    </label>
+                `;
+                checkboxContainer.appendChild(checkboxDiv);
+            });
+
+            // Adicionar event listeners para os botões de chat IDs
+            addTableEventListeners();
+        }
+
+        function deleteChatId(chatIdObj) {
+            if (confirm('Tem certeza que deseja excluir este Chat ID?')) {
+                chatIds = chatIds.filter(c => c.id !== chatIdObj);
+                localStorage.setItem('chatIds', JSON.stringify(chatIds));
+                loadChatIds();
+                showNotification('Chat ID excluído com sucesso!', 'success');
+            }
+        }
+
+        function filterChatIds(searchTerm) {
+            const cards = document.querySelectorAll('#chat-ids-container .card');
+            
+            cards.forEach(card => {
+                const text = card.textContent.toLowerCase();
+                card.style.display = text.includes(searchTerm.toLowerCase()) ? 'block' : 'none';
+            });
+        }
+
+        // Envio de Mensagens
+        async function sendMessage() {
+            const chatbotId = document.getElementById('select-chatbot').value;
+            const messageType = document.getElementById('message-type').value;
+            const messageContent = document.getElementById('message-content').value;
+            const mediaUrl = document.getElementById('media-url').value;
+            const isScheduled = document.getElementById('schedule-message').checked;
+            const scheduleTime = document.getElementById('schedule-time').value;
+
+            if (!chatbotId) {
+                alert('Selecione um chatbot!');
+                return;
+            }
+
+            if (!messageContent) {
+                alert('Digite o conteúdo da mensagem!');
+                return;
+            }
+
+            // Obter chat IDs selecionados
+            const selectedChatIds = Array.from(document.querySelectorAll('#chat-ids-checkboxes input:checked'))
+                .map(checkbox => checkbox.value);
+
+            if (selectedChatIds.length === 0) {
+                alert('Selecione pelo menos um destinatário!');
+                return;
+            }
+
+            if (isScheduled && !scheduleTime) {
+                alert('Defina o horário para agendamento!');
+                return;
+            }
+
+            const chatbot = chatbots.find(c => c.id == chatbotId);
+            
+            if (!chatbot || !chatbot.token) {
+                alert('Token do chatbot não encontrado!');
+                return;
+            }
+
+            // Se for agendamento, apenas salvar para envio posterior
+            if (isScheduled) {
+                const scheduledMessage = {
+                    id: Date.now(),
+                    chatbot: chatbot.name,
+                    chatbotId: chatbotId,
+                    token: chatbot.token,
+                    type: messageType,
+                    content: messageContent,
+                    mediaUrl: mediaUrl,
+                    recipients: selectedChatIds,
+                    scheduleTime: scheduleTime,
+                    status: 'scheduled',
+                    createdAt: new Date().toISOString()
+                };
+
+                // Salvar no localStorage (em produção seria em um banco de dados)
+                let scheduledMessages = JSON.parse(localStorage.getItem('scheduledMessages')) || [];
+                scheduledMessages.push(scheduledMessage);
+                localStorage.setItem('scheduledMessages', JSON.stringify(scheduledMessages));
+
+                showNotification(`Mensagem agendada para ${new Date(scheduleTime).toLocaleString('pt-BR')}!`, 'success');
+                
+                // Limpar formulário
+                clearMessageForm();
+                return;
+            }
+
+            // Envio imediato - fazer requisições reais para API do Telegram
+            showLoading('Enviando mensagens...');
+            
+            try {
+                const results = await sendTelegramMessages(chatbot.token, selectedChatIds, messageType, messageContent, mediaUrl);
+                
+                let successCount = 0;
+                let errorCount = 0;
+                const errors = [];
+
+                results.forEach((result, index) => {
+                    if (result.success) {
+                        successCount++;
+                    } else {
+                        errorCount++;
+                        errors.push(`${selectedChatIds[index]}: ${result.error}`);
+                    }
+                });
+
+                hideLoading();
+
+                // Mostrar resultados
+                if (successCount > 0 && errorCount === 0) {
+                    showNotification(`✅ Mensagem enviada com sucesso para ${successCount} destinatário(s)!`, 'success');
+                } else if (successCount > 0 && errorCount > 0) {
+                    showNotification(`⚠️ Enviado para ${successCount}, falhou para ${errorCount}. Verifique o console para detalhes.`, 'warning');
+                    console.error('Erros de envio:', errors);
+                } else {
+                    showNotification(`❌ Falha ao enviar para todos os destinatários. Verifique tokens e chat IDs.`, 'danger');
+                    console.error('Todos os envios falharam:', errors);
+                }
+
+                // Limpar formulário apenas se pelo menos uma mensagem foi enviada
+                if (successCount > 0) {
+                    clearMessageForm();
+                }
+
+            } catch (error) {
+                hideLoading();
+                console.error('Erro geral no envio:', error);
+                showNotification('Erro ao enviar mensagens: ' + error.message, 'danger');
+            }
+        }
+
+        async function sendTelegramMessages(botToken, chatIds, messageType, content, mediaUrl) {
+            const promises = chatIds.map(chatId => sendSingleMessage(botToken, chatId, messageType, content, mediaUrl));
+            return Promise.allSettled(promises).then(results => 
+                results.map(result => ({
+                    success: result.status === 'fulfilled',
+                    error: result.status === 'rejected' ? result.reason.message : null,
+                    data: result.status === 'fulfilled' ? result.value : null
+                }))
+            );
+        }
+
+        async function sendSingleMessage(botToken, chatId, messageType, content, mediaUrl) {
+            try {
+                let apiUrl;
+                let payload;
+
+                switch (messageType) {
+                    case 'text':
+                        apiUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
+                        payload = {
+                            chat_id: chatId,
+                            text: content,
+                            parse_mode: 'HTML'
+                        };
+                        break;
+
+                    case 'photo':
+                        if (!mediaUrl) {
+                            throw new Error('URL da foto é obrigatória');
+                        }
+                        apiUrl = `https://api.telegram.org/bot${botToken}/sendPhoto`;
+                        payload = {
+                            chat_id: chatId,
+                            photo: mediaUrl,
+                            caption: content,
+                            parse_mode: 'HTML'
+                        };
+                        break;
+
+                    case 'document':
+                        if (!mediaUrl) {
+                            throw new Error('URL do documento é obrigatória');
+                        }
+                        apiUrl = `https://api.telegram.org/bot${botToken}/sendDocument`;
+                        payload = {
+                            chat_id: chatId,
+                            document: mediaUrl,
+                            caption: content,
+                            parse_mode: 'HTML'
+                        };
+                        break;
+
+                    default:
+                        throw new Error('Tipo de mensagem não suportado');
+                }
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+
+                if (!data.ok) {
+                    // Salvar mensagem com status de falha
+                    const chatbot = chatbots.find(c => c.token === botToken);
+                    if (chatbot) {
+                        saveMessageToHistory(chatId, chatbot.id, 'sent', messageType, content, 'failed');
+                    }
+                    throw new Error(data.description || 'Erro na API do Telegram');
+                }
+
+                // Salvar mensagem enviada com sucesso no histórico
+                const chatbot = chatbots.find(c => c.token === botToken);
+                if (chatbot) {
+                    saveMessageToHistory(chatId, chatbot.id, 'sent', messageType, content, 'delivered');
+                }
+
+                return data.result;
+
+            } catch (error) {
+                // Se for erro de CORS, dar uma dica útil
+                if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                    throw new Error('Erro de CORS: Use extensão CORS ou implemente backend');
+                }
+                throw error;
+            }
+        }
+
+        function clearMessageForm() {
+            document.getElementById('message-form').reset();
+            document.getElementById('media-url-group').style.display = 'none';
+            document.getElementById('schedule-time-group').style.display = 'none';
+            document.getElementById('select-all-chats').checked = false;
+            
+            // Desmarcar todos os checkboxes
+            document.querySelectorAll('#chat-ids-checkboxes input[type="checkbox"]').forEach(cb => {
+                cb.checked = false;
+            });
+        }
+
+        function previewMessage() {
+            const chatbotId = document.getElementById('select-chatbot').value;
+            const messageType = document.getElementById('message-type').value;
+            const messageContent = document.getElementById('message-content').value;
+            const mediaUrl = document.getElementById('media-url').value;
+
+            if (!messageContent) {
+                alert('Digite o conteúdo da mensagem!');
+                return;
+            }
+
+            const chatbot = chatbots.find(c => c.id == chatbotId);
+            const previewContent = document.getElementById('preview-content');
+            
+            let preview = `
+                <div class="border rounded p-3 bg-light">
+                    <div class="d-flex align-items-center mb-2">
+                        <i class="bi bi-robot text-primary me-2"></i>
+                        <strong>${chatbot ? chatbot.name : 'Chatbot não selecionado'}</strong>
+                    </div>
+                    <div class="message-preview">
+            `;
+
+            if (messageType === 'photo' && mediaUrl) {
+                preview += `<img src="${mediaUrl}" class="img-fluid mb-2" style="max-width: 300px;" alt="Preview">`;
+            } else if (messageType === 'document' && mediaUrl) {
+                preview += `<div class="alert alert-info mb-2"><i class="bi bi-file-earmark"></i> Documento: ${mediaUrl}</div>`;
+            }
+
+            preview += `
+                        <p class="mb-0">${messageContent.replace(/\n/g, '<br>')}</p>
+                    </div>
+                </div>
+            `;
+
+            previewContent.innerHTML = preview;
+            
+            const modal = new bootstrap.Modal(document.getElementById('previewModal'));
+            modal.show();
+        }
+
+        // Funções utilitárias
+        function formatDate(dateString) {
+            return new Date(dateString).toLocaleDateString('pt-BR', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function showNotification(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+            toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+            toast.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.parentNode.removeChild(toast);
+                }
+            }, 5000);
+        }
+
+        function showLoading(message) {
+            const loading = document.createElement('div');
+            loading.id = 'loading-overlay';
+            loading.className = 'position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center';
+            loading.style.cssText = 'background: rgba(0,0,0,0.5); z-index: 9999;';
+            loading.innerHTML = `
+                <div class="bg-white rounded p-4 text-center">
+                    <div class="spinner-border text-primary mb-2"></div>
+                    <div>${message}</div>
+                </div>
+            `;
+            
+            document.body.appendChild(loading);
+        }
+
+        function hideLoading() {
+            const loading = document.getElementById('loading-overlay');
+            if (loading) {
+                loading.parentNode.removeChild(loading);
+            }
+        }
+
+        // Dados de exemplo (opcional)
+        function loadSampleData() {
+            if (chatbots.length === 0) {
+                chatbots.push({
+                    id: 1,
+                    name: 'Bot Exemplo',
+                    token: '123456789:ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+                    description: 'Bot de exemplo para demonstração',
+                    status: 'online',
+                    createdAt: new Date().toISOString()
+                });
+                localStorage.setItem('chatbots', JSON.stringify(chatbots));
+            }
+
+            if (chatIds.length === 0) {
+                chatIds.push(
+                    {
+                        id: 1,
+                        chatId: '-1001234567890',
+                        name: 'Grupo Teste',
+                        type: 'group',
+                        addedAt: new Date().toISOString()
+                    },
+                    {
+                        id: 2,
+                        chatId: '987654321',
+                        name: 'Usuário Teste',
+                        type: 'user',
+                        addedAt: new Date().toISOString()
+                    }
+                );
+                localStorage.setItem('chatIds', JSON.stringify(chatIds));
+            }
+        }
+
+        // ===== GERENCIAMENTO DE MENSAGENS AGENDADAS =====
+
+        function loadScheduledMessages() {
+            const scheduledMessages = JSON.parse(localStorage.getItem('scheduledMessages')) || [];
+            const tbody = document.getElementById('scheduled-messages-table');
+            const countElement = document.getElementById('scheduled-count');
+            
+            tbody.innerHTML = '';
+            countElement.textContent = `Total: ${scheduledMessages.length} mensagens agendadas`;
+
+            if (scheduledMessages.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">
+                            <i class="bi bi-clock fs-1 d-block mb-2"></i>
+                            Nenhuma mensagem agendada
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            scheduledMessages.forEach((message, index) => {
+                const scheduleDate = new Date(message.scheduleTime);
+                const now = new Date();
+                const isPast = scheduleDate < now;
+                const statusClass = isPast ? 'warning' : message.status === 'sent' ? 'success' : 'info';
+                const statusText = isPast ? 'Vencida' : message.status === 'sent' ? 'Enviada' : 'Agendada';
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>
+                        <small>${formatDate(message.scheduleTime)}</small>
+                        ${isPast ? '<br><span class="badge bg-warning">Vencida</span>' : ''}
+                    </td>
+                    <td>${message.chatbot}</td>
+                    <td>
+                        <span class="badge bg-secondary">${message.type}</span>
+                    </td>
+                    <td>
+                        <div style="max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+                            ${message.content.substring(0, 50)}${message.content.length > 50 ? '...' : ''}
+                        </div>
+                    </td>
+                    <td>
+                        <span class="badge bg-info">${message.recipients.length}</span>
+                    </td>
+                    <td>
+                        <span class="badge bg-${statusClass}">${statusText}</span>
+                    </td>
+                    <td>
+                        <div class="btn-group btn-group-sm">
+                            <button class="btn btn-outline-info" onclick="viewScheduledMessage(${index})" title="Ver Detalhes">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                            <button class="btn btn-outline-primary" onclick="sendScheduledNow(${index})" title="Enviar Agora" ${message.status === 'sent' ? 'disabled' : ''}>
+                                <i class="bi bi-send"></i>
+                            </button>
+                            <button class="btn btn-outline-danger" onclick="deleteScheduledMessage(${index})" title="Excluir">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function viewScheduledMessage(index) {
+            const scheduledMessages = JSON.parse(localStorage.getItem('scheduledMessages')) || [];
+            const message = scheduledMessages[index];
+            
+            if (!message) return;
+
+            const previewContent = document.getElementById('preview-content');
+            
+            let preview = `
+                <div class="border rounded p-3 bg-light">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-robot text-primary me-2"></i>
+                            <strong>${message.chatbot}</strong>
+                        </div>
+                        <span class="badge bg-info">Agendada para ${formatDate(message.scheduleTime)}</span>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <small class="text-muted">Tipo:</small><br>
+                            <span class="badge bg-secondary">${message.type}</span>
+                        </div>
+                        <div class="col-md-6">
+                            <small class="text-muted">Destinatários:</small><br>
+                            <span class="badge bg-info">${message.recipients.length} chat(s)</span>
+                        </div>
+                    </div>
+
+                    <div class="message-preview">
+            `;
+
+            if (message.type === 'photo' && message.mediaUrl) {
+                preview += `<img src="${message.mediaUrl}" class="img-fluid mb-2" style="max-width: 300px;" alt="Preview">`;
+            } else if (message.type === 'document' && message.mediaUrl) {
+                preview += `<div class="alert alert-info mb-2"><i class="bi bi-file-earmark"></i> Documento: ${message.mediaUrl}</div>`;
+            }
+
+            preview += `
+                        <p class="mb-3">${message.content.replace(/\n/g, '<br>')}</p>
+                        
+                        <div class="mt-3">
+                            <small class="text-muted">Destinatários:</small><br>
+                            ${message.recipients.map(id => `<code class="me-1">${id}</code>`).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            previewContent.innerHTML = preview;
+            
+            const modal = new bootstrap.Modal(document.getElementById('previewModal'));
+            modal.show();
+        }
+
+        async function sendScheduledNow(index) {
+            const scheduledMessages = JSON.parse(localStorage.getItem('scheduledMessages')) || [];
+            const message = scheduledMessages[index];
+            
+            if (!message || message.status === 'sent') return;
+
+            if (!confirm('Enviar esta mensagem agora?')) return;
+
+            try {
+                showLoading('Enviando mensagem agendada...');
+                
+                const results = await sendTelegramMessages(
+                    message.token, 
+                    message.recipients, 
+                    message.type, 
+                    message.content, 
+                    message.mediaUrl
+                );
+
+                let successCount = 0;
+                let errorCount = 0;
+
+                results.forEach(result => {
+                    if (result.success) successCount++;
+                    else errorCount++;
+                });
+
+                // Atualizar status da mensagem
+                message.status = 'sent';
+                message.sentAt = new Date().toISOString();
+                scheduledMessages[index] = message;
+                localStorage.setItem('scheduledMessages', JSON.stringify(scheduledMessages));
+
+                hideLoading();
+                loadScheduledMessages();
+
+                if (successCount > 0 && errorCount === 0) {
+                    showNotification(`✅ Mensagem agendada enviada para ${successCount} destinatário(s)!`, 'success');
+                } else {
+                    showNotification(`⚠️ Enviado para ${successCount}, falhou para ${errorCount}.`, 'warning');
+                }
+
+            } catch (error) {
+                hideLoading();
+                showNotification('Erro ao enviar mensagem agendada: ' + error.message, 'danger');
+            }
+        }
+
+        function deleteScheduledMessage(index) {
+            if (!confirm('Excluir esta mensagem agendada?')) return;
+
+            let scheduledMessages = JSON.parse(localStorage.getItem('scheduledMessages')) || [];
+            scheduledMessages.splice(index, 1);
+            localStorage.setItem('scheduledMessages', JSON.stringify(scheduledMessages));
+            
+            loadScheduledMessages();
+            showNotification('Mensagem agendada excluída!', 'success');
+        }
+
+        function clearAllScheduledMessages() {
+            if (!confirm('Excluir TODAS as mensagens agendadas? Esta ação não pode ser desfeita.')) return;
+
+            localStorage.removeItem('scheduledMessages');
+            loadScheduledMessages();
+            showNotification('Todas as mensagens agendadas foram excluídas!', 'success');
+        }
+
+        function processScheduledMessages() {
+            const scheduledMessages = JSON.parse(localStorage.getItem('scheduledMessages')) || [];
+            const now = new Date();
+            let processedCount = 0;
+
+            scheduledMessages.forEach(async (message, index) => {
+                const scheduleTime = new Date(message.scheduleTime);
+                
+                if (scheduleTime <= now && message.status !== 'sent') {
+                    try {
+                        const results = await sendTelegramMessages(
+                            message.token, 
+                            message.recipients, 
+                            message.type, 
+                            message.content, 
+                            message.mediaUrl
+                        );
+
+                        message.status = 'sent';
+                        message.sentAt = new Date().toISOString();
+                        processedCount++;
+
+                    } catch (error) {
+                        console.error(`Erro ao enviar mensagem agendada ${index}:`, error);
+                    }
+                }
+            });
+
+            if (processedCount > 0) {
+                localStorage.setItem('scheduledMessages', JSON.stringify(scheduledMessages));
+                loadScheduledMessages();
+                showNotification(`${processedCount} mensagem(ns) agendada(s) processada(s)!`, 'success');
+            } else {
+                showNotification('Nenhuma mensagem estava pronta para envio.', 'info');
+            }
+        }
+
+        // Carregar mensagens agendadas quando o modal é aberto
+        document.getElementById('scheduledMessagesModal').addEventListener('shown.bs.modal', loadScheduledMessages);
+
+        // Definir funções globais para mensagens agendadas
+        window.viewScheduledMessage = viewScheduledMessage;
+        window.sendScheduledNow = sendScheduledNow;
+        window.deleteScheduledMessage = deleteScheduledMessage;
+
+        // Descomente a linha abaixo para carregar dados de exemplo
+        loadSampleData();
+    </script>
+</body>
+</html>
