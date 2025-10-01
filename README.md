@@ -343,9 +343,9 @@ Nenhum usuário encontrado
 
 ### Contato
 
-- 📧 Email: [seu-email@exemplo.com]
-- 💬 Telegram: [@seu-usuario]
-- 🐛 Issues: [link-do-repositorio/issues]
+- 📧 Email: [jonathan14willian@gmail.com]
+- 💬 Telegram: [@@euboboy](https://t.me/euboboy)
+- 🐛 Issues: [telegram/issues](https://github.com/thanwill/telegram/issues)
 
 ## 📄 Licença
 
