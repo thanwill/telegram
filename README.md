@@ -5,12 +5,14 @@ Um sistema completo de gerenciamento de chatbots do Telegram com interface web m
 ## ✨ Funcionalidades Principais
 
 ### 🔧 Gerenciamento de Chatbots
+
 - ✅ Adicionar/remover chatbots com tokens da API do Telegram
 - ✅ Ativar/desativar bots individualmente
 - ✅ Validação automática de tokens
 - ✅ Monitoramento de status (online/offline)
 
 ### 👥 Gerenciamento de Usuários
+
 - ✅ Importação automática de usuários via API do Telegram
 - ✅ Visualização em tabela paginada com filtros
 - ✅ Busca por nome, username ou chat ID
@@ -18,6 +20,7 @@ Um sistema completo de gerenciamento de chatbots do Telegram com interface web m
 - ✅ Estatísticas detalhadas por usuário
 
 ### 💬 Sistema de Mensagens
+
 - ✅ Envio de mensagens em tempo real
 - ✅ Suporte a texto, fotos e documentos
 - ✅ Mensagens em massa para múltiplos usuários
@@ -25,6 +28,7 @@ Um sistema completo de gerenciamento de chatbots do Telegram com interface web m
 - ✅ Preview de mensagens antes do envio
 
 ### 📊 Histórico e Relatórios
+
 - ✅ Histórico completo de conversas
 - ✅ Visualização em formato de chat
 - ✅ Exportação de dados em JSON
@@ -36,32 +40,47 @@ Um sistema completo de gerenciamento de chatbots do Telegram com interface web m
 > **Nota**: Adicione aqui as capturas de tela do seu projeto
 
 ### Dashboard Principal
-<!-- Adicionar captura da tela inicial com navegação -->
+
+![1759277351415](image/README/1759277351415.png)
+
 *Tela inicial mostrando a navegação principal e cards de estatísticas*
 
 ### Gerenciamento de Chatbots
-<!-- Adicionar captura da seção de chatbots -->
+
+![1759277028274](image/README/1759277028274.png)
+
+![1759277009977](image/README/1759277009977.png)
+
 *Interface para adicionar/gerenciar chatbots com tabela de status*
 
 ### Lista de Usuários
-<!-- Adicionar captura da tabela de usuários -->
+
+![1759277096779](image/README/1759277096779.png)
+
 *Tabela paginada com filtros, busca e ações por usuário*
 
 ### Detalhes do Usuário
-<!-- Adicionar captura do modal de detalhes -->
+
+![1759277228726](image/README/1759277228726.png)
+
 *Modal com informações completas e histórico de mensagens*
 
 ### Envio de Mensagens
-<!-- Adicionar captura da seção de mensagens -->
+
+![1759277267174](image/README/1759277267174.png)
+
 *Interface para composição e envio de mensagens com preview*
 
 ### Mensagens Agendadas
-<!-- Adicionar captura do modal de agendamento -->
+
+![1759277318781](image/README/1759277318781.png)
+
 *Sistema de agendamento com tabela de mensagens pendentes*
 
 ## 🚀 Instalação e Configuração
 
 ### Pré-requisitos
+
 - Navegador web moderno (Chrome, Firefox, Safari, Edge)
 - Token de bot do Telegram (obtido via [@BotFather](https://t.me/BotFather))
 - Servidor web local ou hosting (para contornar limitações de CORS)
@@ -69,22 +88,23 @@ Um sistema completo de gerenciamento de chatbots do Telegram com interface web m
 ### Instalação Simples
 
 1. **Clone ou baixe o projeto**
+
    ```bash
    git clone [seu-repositorio]
    cd telegram-chatbot-manager
    ```
-
 2. **Abra o arquivo HTML**
+
    ```bash
    # Opção 1: Servir via servidor local (recomendado)
    python -m http.server 8000
    # Acesse: http://localhost:8000/chatbot-manager.html
-   
+
    # Opção 2: Abrir diretamente no navegador
    # Abra chatbot-manager.html no seu navegador
    ```
-
 3. **Configure seu primeiro chatbot**
+
    - Vá para [@BotFather](https://t.me/BotFather) no Telegram
    - Crie um novo bot com `/newbot`
    - Copie o token fornecido
@@ -95,6 +115,7 @@ Um sistema completo de gerenciamento de chatbots do Telegram com interface web m
 Para uso em produção, implemente um backend para contornar limitações de CORS:
 
 #### Backend Node.js (Recomendado)
+
 ```javascript
 // server.js
 const express = require('express');
@@ -125,6 +146,7 @@ app.listen(3000, () => {
 ```
 
 #### Backend Python (Flask)
+
 ```python
 # app.py
 from flask import Flask, request, jsonify
@@ -154,11 +176,12 @@ if __name__ == '__main__':
 ### 1. Primeiro Acesso
 
 1. **Adicione um Chatbot**
+
    - Clique em "Adicionar Chatbot"
    - Insira nome, token e descrição
    - Ative o chatbot (botão de energia)
-
 2. **Importe Usuários**
+
    - Vá para a seção "Usuários"
    - Clique em "Buscar Usuários"
    - Selecione o chatbot ativo
@@ -167,15 +190,16 @@ if __name__ == '__main__':
 ### 2. Enviando Mensagens
 
 1. **Mensagem Individual**
+
    - Na lista de usuários, clique no ícone de envelope
    - Ou use "Ver Detalhes" → "Enviar Mensagem"
-
 2. **Mensagem em Massa**
+
    - Selecione múltiplos usuários na tabela
    - Clique em "Mensagem em Massa"
    - Compose sua mensagem na seção correspondente
-
 3. **Agendar Mensagens**
+
    - Na seção "Mensagens", marque "Agendar envio"
    - Defina data e horário
    - A mensagem ficará pendente até o horário definido
@@ -190,18 +214,21 @@ if __name__ == '__main__':
 ## 🔧 Funcionalidades Avançadas
 
 ### Sistema de Histórico
+
 - Armazena todas as mensagens enviadas e recebidas
 - Visualização em formato de chat com timestamps
 - Indicadores de status de entrega
 - Suporte a diferentes tipos de mídia
 
 ### API Integration
+
 - Integração real com a API do Telegram
 - Busca automática de novos usuários
 - Atualização de histórico em tempo real
 - Tratamento de erros e limitações de rate
 
 ### Armazenamento Local
+
 - Todos os dados são salvos no localStorage do navegador
 - Backup automático a cada ação
 - Possibilidade de exportação para backup externo
@@ -233,12 +260,14 @@ telegram-chatbot-manager/
 ## 🔒 Considerações de Segurança
 
 ### Tokens de Bot
+
 - ⚠️ **Nunca exponha tokens em código cliente**
 - ✅ Use backend proxy para chamadas da API
 - ✅ Implemente autenticação adequada
 - ✅ Considere rotação regular de tokens
 
 ### Dados dos Usuários
+
 - 📊 Todos os dados ficam no navegador (localStorage)
 - 🔒 Para produção, considere criptografia local
 - 📤 Implemente backup regular dos dados
@@ -247,17 +276,19 @@ telegram-chatbot-manager/
 ## 🚨 Limitações e CORS
 
 ### Limitação de CORS
+
 O navegador bloqueia requisições diretas para a API do Telegram devido à política de CORS. Soluções:
 
 1. **Extensão CORS** (desenvolvimento):
+
    - Chrome: "CORS Unblock" ou "Disable CORS"
    - Firefox: "CORS Everywhere"
-
 2. **Backend Proxy** (produção):
+
    - Use os exemplos de backend fornecidos
    - Implemente autenticação adequada
-
 3. **Hosting com Proxy**:
+
    - Vercel, Netlify com Functions
    - Cloudflare Workers
 
@@ -289,21 +320,27 @@ Contribuições são bem-vindas! Para contribuir:
 ### Problemas Comuns
 
 **1. Erro de CORS**
+
 ```
 Erro: Access to fetch at 'https://api.telegram.org' from origin has been blocked by CORS policy
 ```
+
 **Solução**: Use extensão CORS ou implemente backend proxy
 
 **2. Token inválido**
+
 ```
 Erro: Unauthorized - Bot token is invalid
 ```
+
 **Solução**: Verifique o token no @BotFather
 
 **3. Usuários não aparecem**
+
 ```
 Nenhum usuário encontrado
 ```
+
 **Solução**: Certifique-se que usuários interagiram com o bot
 
 ### Contato
