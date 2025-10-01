@@ -37,9 +37,7 @@ Um sistema completo de gerenciamento de chatbots do Telegram com interface web m
 
 ## 🖼️ Capturas de Tela
 
-> **Nota**: Adicione aqui as capturas de tela do seu projeto
-
-### Dashboard Principal
+Dashboard Principal
 
 ![1759277351415](image/README/1759277351415.png)
 
