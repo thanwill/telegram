@@ -343,29 +343,6 @@ Nenhum usuário encontrado
 
 ### Contato
 
-- 📧 Email: [jonathan14willian@gmail.com]
-- 💬 Telegram: [@@euboboy](https://t.me/euboboy)
+- 📧 Email: [jonathan14willian@gmail.com](mailto:jonathan14willian@gmail.com)
+- 💬 Telegram: [@euboboy](https://t.me/euboboy)
 - 🐛 Issues: [telegram/issues](https://github.com/thanwill/telegram/issues)
-
-## 📄 Licença
-
-Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
-
----
-
-## 🏆 Agradecimentos
-
-- [Telegram Bot API](https://core.telegram.org/bots/api) pela excelente documentação
-- [Bootstrap](https://getbootstrap.com/) pelo framework CSS
-- [Bootstrap Icons](https://icons.getbootstrap.com/) pelos ícones
-- Comunidade de desenvolvedores por feedback e sugestões
-
----
-
-<div align="center">
-
-**⭐ Se este projeto foi útil, considere dar uma estrela!**
-
-[Demo Online](seu-link-demo) • [Documentação](seu-link-docs) • [Reportar Bug](seu-link-issues)
-
-</div>
